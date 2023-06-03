@@ -25,8 +25,9 @@ mongoose.connect(process.env.mongodburl, { useNewUrlParser: true }, (err) => {
 });
 
 
-// 1.save or create data 
 
+
+//create a post to the database
 app.post('/', async (req, res) => {
     console.log(req.body, 'postdata');
 
