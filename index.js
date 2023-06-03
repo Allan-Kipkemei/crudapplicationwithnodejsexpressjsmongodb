@@ -1,25 +1,25 @@
-require('dotenv').config();
 
+//import all the dependancies
+require('dotenv').config(); //load to environment variables 
 const express = require('express');
 const bodyparser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-const userModel = require('./models/users');  
+const userModel = require('./models/users');
 
+// initialize express application
 const app = express();
 
 app.use(cors());
 app.use(bodyparser.json());
 
 // connect database
-mongoose.connect(process.env.mongodburl,{useNewUrlParser:true},(err)=>{
-    if(err)
-    {
-        console.log('db connection failed...',err);
+mongoose.connect(process.env.mongodburl, { useNewUrlParser: true }, (err) => {
+    if (err) {
+        console.log('db connection failed...', err);
     }
-    else
-    {
+    else {
         console.log('db connection success...');
     }
 });
@@ -27,149 +27,132 @@ mongoose.connect(process.env.mongodburl,{useNewUrlParser:true},(err)=>{
 
 // 1.save or create data 
 
-app.post('/',async (req,res)=>{
-    console.log(req.body,'postdata');
+app.post('/', async (req, res) => {
+    console.log(req.body, 'postdata');
 
-    const chkdataexit = await userModel.findOne({ $or:[{uemail:req.body.email},{umobile:req.body.mobile}] });
-  
-    if(chkdataexit)
-    {
-        if(chkdataexit.uemail===req.body.email)
-        {
+    const chkdataexit = await userModel.findOne({ $or: [{ uemail: req.body.email }, { umobile: req.body.mobile }] });
+
+    if (chkdataexit) {
+        if (chkdataexit.uemail === req.body.email) {
             res.send({
-                msg:"email id already exits"
+                msg: "email id already exits"
             });
         }
-        else
-        {
+        else {
             res.send({
-                msg:"mobile number already exits"
+                msg: "mobile number already exits"
             });
         }
     }
-    else
-    {
+    else {
         // save db 
         const data = new userModel(
             {
-                uname:req.body.name,
-                uemail:req.body.email,
-                umobile:req.body.mobile
+                uname: req.body.name,
+                uemail: req.body.email,
+                umobile: req.body.mobile
             }
         );
-    
-        data.save((err,result)=>{
-                if(err)
-                {
-                    console.log('create db failed',err);
-                }
-                else
-                {
-                    res.send({
-                        msg:'data created',
-                        data:result 
-                    });
-                } 
+
+        data.save((err, result) => {
+            if (err) {
+                console.log('create db failed', err);
+            }
+            else {
+                res.send({
+                    msg: 'data created',
+                    data: result
+                });
+            }
         });
-    
+
     }
 
 
 
-    
+
 
 });
 
 
 
 // 2. read all data 
-app.get('/',async (req,res)=>{
+app.get('/', async (req, res) => {
     console.log('getdata');
 
     const data = await userModel.find();
 
-    if(data)
-    {
+    if (data) {
         res.send({
-            msg:"all user data",
-            result:data
+            msg: "all user data",
+            result: data
         });
-    }else
-    {
+    } else {
         res.send({
-            msg:"No data"
+            msg: "No data"
         });
     }
 
 });
 
 // 3.get data by id 
-app.get('/:id',async (req,res)=>{
-    console.log(req.params.id,'ids');
-    if(req.params.id)
-    {
+app.get('/:id', async (req, res) => {
+    console.log(req.params.id, 'ids');
+    if (req.params.id) {
         const chkid = mongoose.isValidObjectId(req.params.id);
-        if(chkid===true)
-        {
-            const iddata = await userModel.findById({_id:req.params.id});
-            if(iddata==null)
-            {
+        if (chkid === true) {
+            const iddata = await userModel.findById({ _id: req.params.id });
+            if (iddata == null) {
                 res.send({
-                    msg:'single data not data',
-                    result:iddata
+                    msg: 'single data not data',
+                    result: iddata
                 })
             }
-            else
-            {
+            else {
                 res.send({
-                    msg:"single data ",
-                    result:iddata
+                    msg: "single data ",
+                    result: iddata
                 });
             }
         }
-        else
-        {
+        else {
             res.send({
-                msg:"invalid user id"
+                msg: "invalid user id"
             })
         }
 
 
 
 
-       
+
     }
-    
-   
-  
+
+
+
 
 });
 
 //4.delete single data
-app.delete('/:id',async (req,res)=>{
-   
-    console.log('remove data',req.params.id);
-    
+app.delete('/:id', async (req, res) => {
+
+    console.log('remove data', req.params.id);
+
     const chkvalidid = mongoose.isValidObjectId(req.params.id);
-    if(chkvalidid==true)
-    {
-        const iddata = await userModel.remove({_id:req.params.id});
-        if(iddata==null)
-        {
+    if (chkvalidid == true) {
+        const iddata = await userModel.remove({ _id: req.params.id });
+        if (iddata == null) {
             res.send({
-                msg:"data not found"
+                msg: "data not found"
             });
         }
-        else
-        {
+        else {
             res.send({
-                msg:"data remove"
+                msg: "data remove"
             });
         }
-    }else
-    {
+    } else {
         res.send({
-            msg:"invalid id please enter valid id"
+            msg: "invalid id please enter valid id"
         });
     }
 
@@ -178,14 +161,13 @@ app.delete('/:id',async (req,res)=>{
 
 
 // 5.update single data
-app.put('/:id',async (req,res)=>{
+app.put('/:id', async (req, res) => {
     console.log(req.params.id)
-    const updatedata = await userModel.updateOne({_id:req.params.id},{$set:{uemail:req.body.email}});
-    
-    if(updatedata)
-    {
-        res.send({ 
-            msg:"data updated"
+    const updatedata = await userModel.updateOne({ _id: req.params.id }, { $set: { uemail: req.body.email } });
+
+    if (updatedata) {
+        res.send({
+            msg: "data updated"
         });
     }
 
@@ -197,8 +179,8 @@ app.put('/:id',async (req,res)=>{
 
 // run server 
 const PORT = process.env.PORT | 3000;
-app.listen(PORT,()=>{
-console.log(`server running ... ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`server running ... ${PORT}`);
 });
 
 
