@@ -133,7 +133,7 @@ app.get('/:id', async (req, res) => {
 
 });
 
-//4.delete single data
+//4.delete data by id
 app.delete('/:id', async (req, res) => {
 
     console.log('remove data', req.params.id);
